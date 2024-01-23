@@ -53,6 +53,22 @@ validate_git_url() {
 # Ask if the user wants to download playbooks from a Git repository
 read -p "Do you want to download playbooks from a Git repository? (y/n): " download_playbooks
 if [[ $download_playbooks == [yY] ]]; then
+    # Check if Git is installed and install it if not
+    echo_color "Checking for Git installation..." $YELLOW
+    if ! command -v git &> /dev/null; then
+        echo_color "Git is not installed. Installing Git..." $YELLOW
+        sudo apt install git -y
+        if [ $? -eq 0 ]; then
+            echo_color "Git has been successfully installed." $GREEN
+        else
+            echo_color "Failed to install Git." $RED
+            # send error to syslog
+            logger -p user.err -t ansible-setup "Failed to install Git."
+            exit 1
+        fi
+    else
+        echo_color "Git is already installed." $GREEN
+    fi
     # Ask if it's a public repository
     read -p "Is it a public repository? (y/n): " is_public
     if [[ $is_public == [yY] ]]; then
